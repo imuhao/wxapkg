@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: wxapkg-gui-windows-x64
+            upload_name: wxapkg-gui-windows-x64.exe
+          - os: macos-latest
+            artifact_name: wxapkg-gui-darwin
+            upload_name: wxapkg-gui-darwin.app.zip
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Get Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        env:
+          CGO_ENABLED: 0
+        run: wails build
+        working-directory: .
+
+      - name: Rename artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: mv build/bin/wxapkg-gui.exe build/bin/${{ matrix.artifact_name }}.exe
+
+      - name: Build and zip macOS
+        if: matrix.os == 'macos-latest'
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '10.13'
+        shell: bash
+        run: |
+          wails build -platform darwin/universal
+          ditto -c -k --keepParent build/bin/wxapkg-gui.app build/bin/${{ matrix.upload_name }}
+          rm -rf build/bin/wxapkg-gui.app
+
+      - name: Download UPX
+        if: matrix.os == 'windows-latest'
+        run: |
+          curl -LO https://github.com/upx/upx/releases/download/v4.2.2/upx-4.2.2-win64.zip
+          tar -xf upx-4.2.2-win64.zip
+
+      - name: Compress with UPX (Windows only)
+        if: matrix.os == 'windows-latest'
+        run: .\upx-4.2.2-win64\upx.exe --best --lzma build\bin\${{ matrix.artifact_name }}.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: build/bin/${{ matrix.upload_name }}
+
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

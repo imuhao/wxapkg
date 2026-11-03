@@ -1,0 +1,9 @@
+.task
+bin
+frontend/dist
+frontend/node_modules
+frontend/package.json.md5
+build/linux/appimage/build
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
+.idea
+test
