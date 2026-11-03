@@ -140,6 +140,11 @@ func (a *AppService) UnpackWxapkgItem(item wechat.WxapkgItem, options wechat.Unp
 	})
 }
 
+// GetAppInfo 解析解包目录，返回小程序的结构性概览信息
+func (a *AppService) GetAppInfo(unpackedDir string) (*wechat.AppInfo, error) {
+	return wechat.AnalyzeUnpacked(unpackedDir)
+}
+
 func (a *AppService) Version() string {
 	return version
 }

@@ -10,6 +10,10 @@ export function ComputeSavePath(arg1, arg2) {
   return window['go']['main']['AppService']['ComputeSavePath'](arg1, arg2);
 }
 
+export function GetAppInfo(arg1) {
+  return window['go']['main']['AppService']['GetAppInfo'](arg1);
+}
+
 export function GetDefaultPaths() {
   return window['go']['main']['AppService']['GetDefaultPaths']();
 }

@@ -7,6 +7,8 @@ export function ClipboardSetText(arg1:string):Promise<void>;
 
 export function ComputeSavePath(arg1:string,arg2:string):Promise<string>;
 
+export function GetAppInfo(arg1:string):Promise<wechat.AppInfo>;
+
 export function GetDefaultPaths():Promise<wechat.PathScanResult>;
 
 export function GetWxapkgItem(arg1:string):Promise<wechat.WxapkgItem>;

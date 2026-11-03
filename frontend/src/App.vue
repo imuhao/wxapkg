@@ -8,6 +8,7 @@ import { formatSize, formatTime, UnpackStatusType, useAppToast } from "./entries
 import Toast from 'primevue/toast';
 import UnpackDialog from "./components/UnpackDialog.vue";
 import SettingsDialog from "./components/SettingsDialog.vue";
+import InfoDialog from "./components/InfoDialog.vue";
 import {wechat} from "../wailsjs/go/models";
 import WxapkgItem = wechat.WxapkgItem;
 import UnpackOptions = wechat.UnpackOptions;
@@ -29,6 +30,8 @@ const OUTPUT_DIRECTORY_PREF_STORAGE_KEY = 'wxapkg:output-directory:preference:v1
 const scanDialogVisible = ref(false)
 const unpackDialogVisible = ref(false)
 const settingsDialogVisible = ref(false)
+const infoDialogVisible = ref(false)
+const infoTarget = ref<{ dir: string; wxId: string }>({ dir: '', wxId: '' })
 const search = ref<string>('')
 const wxapkgItems = ref<WxapkgItem[]>([]);
 const toast = useAppToast()
@@ -163,6 +166,11 @@ function handleDialogHide() {
   selectedWxapkgItem.value = null
 }
 
+function showInfo(item: WxapkgItem) {
+  infoTarget.value = { dir: item.UnpackSavePath, wxId: item.WxId }
+  infoDialogVisible.value = true
+}
+
 function clearAll() {
   wxapkgItems.value = []
   toast.info('清空', '已清空所有小程序')
@@ -279,6 +287,7 @@ onBeforeUnmount(() => {
             <col style="width: 100px">
             <col style="min-width: 200px">
             <col style="width: 72px">
+            <col style="width: 72px">
           </colgroup>
         <template #empty>
           <div class="table-empty">
@@ -340,6 +349,18 @@ onBeforeUnmount(() => {
             </button>
           </template>
         </Column>
+        <Column header="信息" style="width: 72px" headerClass="col-center" bodyClass="col-center">
+          <template #body="{ data }">
+            <button
+              :class="['status-dot', data.UnpackStatus === UnpackStatusType.Finished ? 'finished' : 'idle']"
+              v-tooltip.top="data.UnpackStatus === UnpackStatusType.Finished ? '查看小程序信息' : '解包完成后可查看'"
+              :disabled="data.UnpackStatus !== UnpackStatusType.Finished"
+              @click="showInfo(data)"
+            >
+              <i class="pi pi-info-circle"></i>
+            </button>
+          </template>
+        </Column>
       </DataTable>
       </div>
     </div>
@@ -372,6 +393,11 @@ onBeforeUnmount(() => {
       v-model:visible="settingsDialogVisible"
       :default-output-dir="defaultOutputDir"
       @save="saveDefaultOutputDir"
+    />
+    <InfoDialog
+      v-model:visible="infoDialogVisible"
+      :unpacked-dir="infoTarget.dir"
+      :wx-id="infoTarget.wxId"
     />
     <Toast position="bottom-right" />
   </div>
