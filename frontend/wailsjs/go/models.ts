@@ -19,6 +19,20 @@ export namespace main {
 
 export namespace wechat {
 	
+	export class FileStat {
+	    Path: string;
+	    Size: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new FileStat(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Path = source["Path"];
+	        this.Size = source["Size"];
+	    }
+	}
 	export class ExtStat {
 	    Ext: string;
 	    Count: number;
@@ -32,20 +46,6 @@ export namespace wechat {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Ext = source["Ext"];
 	        this.Count = source["Count"];
-	        this.Size = source["Size"];
-	    }
-	}
-	export class FileStat {
-	    Path: string;
-	    Size: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new FileStat(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Path = source["Path"];
 	        this.Size = source["Size"];
 	    }
 	}
@@ -161,6 +161,8 @@ export namespace wechat {
 		    return a;
 		}
 	}
+	
+	
 	export class PathScanResult {
 	    Paths: string[];
 	    Logs: string;
@@ -175,6 +177,9 @@ export namespace wechat {
 	        this.Logs = source["Logs"];
 	    }
 	}
+	
+	
+	
 	export class UnpackOptions {
 	    EnableDecrypt: boolean;
 	    EnableJsBeautify: boolean;
